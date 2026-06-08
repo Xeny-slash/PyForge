@@ -1,7 +1,7 @@
 # 🛠️ PyForge
 
 **PyForge** is a lightweight and responsive IDE/Code Editor designed specifically for rapid Python development. It offers a minimal yet powerful environment featuring an integrated interactive terminal, real-time syntax highlighting, and seamless file management.
-
+ATTENTION: PyForg is only for windows x64
 ---
 
 ## ✨ Key Features
