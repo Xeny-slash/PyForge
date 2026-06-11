@@ -18,4 +18,4 @@ ATTENTION: PyForg is only for windows x64
 ## 🚀 Getting Started (Development)
 
 ### Prerequisites
-Make sure you have Python installed on your computer (last version of Python is highly recommended). No external libraries are required to run the standard editor, as it relies entirely on built-in `tkinter`.
+Make sure you have Python installed on your computer (3.13 or down version of Python is highly recommended). No external libraries are required to run the standard editor, as it relies entirely on built-in `tkinter`.
