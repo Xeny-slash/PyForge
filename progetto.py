@@ -9,16 +9,18 @@ import queue
 import multiprocessing
 
 # ==========================================
-# 1. IMPOSTAZIONE DEI TEMI (Dark, Light, Green, Blue)
+# 1. IMPOSTAZIONE DEI TEMI COMPLETI
 # ==========================================
 TEMI = {
     "dark": {
         "sfondo_finestra": "#1e1e1e",
         "sfondo_testo": "#252526",
         "colore_testo": "#ffffff",
-        "colore_keyword": "#569cd6",    
-        "colore_stringa": "#ce9178",    
-        "colore_commento": "#6a9955",   
+        "colore_keyword": "#569cd6",    # Blu classico (if, for, def)
+        "colore_builtin": "#4ec9b0",    # Verde acqua (print, len, int)
+        "colore_eccezione": "#f44747",  # Rosso (ValueError, NameError)
+        "colore_stringa": "#ce9178",    # Arancio/Marrone
+        "colore_commento": "#6a9955",   # Verde commento
         "colore_numero": "#b5cea8",     
         "colore_funzione": "#dcdcaa",   
         "sfondo_pulsanti": "#333333",
@@ -34,6 +36,8 @@ TEMI = {
         "sfondo_testo": "#ffffff",
         "colore_testo": "#000000",
         "colore_keyword": "#0000ff",    
+        "colore_builtin": "#008080",    
+        "colore_eccezione": "#cc0000",  
         "colore_stringa": "#a31515",    
         "colore_commento": "#008000",   
         "colore_numero": "#098658",     
@@ -51,9 +55,11 @@ TEMI = {
         "sfondo_testo": "#122617",
         "colore_testo": "#a3e2b1",
         "colore_keyword": "#4af626",    
+        "colore_builtin": "#89ddff",    
+        "colore_eccezione": "#ff5370",  
         "colore_stringa": "#dbc372",    
         "colore_commento": "#5f8a6b",   
-        "colore_numero": "#89ddff",     
+        "colore_numero": "#f78c6c",     
         "colore_funzione": "#26f6d0",   
         "sfondo_pulsanti": "#193a22",
         "sfondo_cmd": "#07100a",
@@ -68,6 +74,8 @@ TEMI = {
         "sfondo_testo": "#101f42",
         "colore_testo": "#e0e6ed",
         "colore_keyword": "#00bfff",    
+        "colore_builtin": "#00e5ff",    
+        "colore_eccezione": "#ff4081",  
         "colore_stringa": "#ff7f50",    
         "colore_commento": "#6c7a89",   
         "colore_numero": "#ffd700",     
@@ -82,13 +90,34 @@ TEMI = {
     }
 }
 
+# ==========================================
+# 1B. VOCABOLARIO DI PYTHON CLASSICO
+# ==========================================
 KEYWORDS_PYTHON = [
     "False", "None", "True", "and", "as", "assert", "async", "await",
     "break", "class", "continue", "def", "del", "elif", "else", "except",
     "finally", "for", "from", "global", "if", "import", "in", "is",
     "lambda", "nonlocal", "not", "or", "pass", "raise", "return",
-    "try", "while", "with", "yield", "print", "input",
-    "str", "int", "float", "bin"
+    "try", "while", "with", "yield"
+]
+
+BUILTINS_PYTHON = [
+    "abs", "aiter", "all", "any", "anext", "ascii", "bin", "bool", "breakpoint",
+    "bytearray", "bytes", "callable", "chr", "classmethod", "compile", "complex",
+    "delattr", "dict", "dir", "divmod", "enumerate", "eval", "exec", "filter",
+    "float", "format", "frozenset", "getattr", "globals", "hasattr", "hash",
+    "help", "hex", "id", "input", "int", "isinstance", "issubclass", "iter",
+    "len", "list", "locals", "map", "max", "memoryview", "min", "next",
+    "object", "oct", "open", "ord", "pow", "print", "property", "range",
+    "repr", "reversed", "round", "set", "setattr", "slice", "sorted",
+    "staticmethod", "str", "sum", "super", "tuple", "type", "vars", "zip", "__import__"
+]
+
+EXCEPTIONS_PYTHON = [
+    "BaseException", "Exception", "TypeError", "ValueError", "NameError",
+    "IndexError", "KeyError", "SyntaxError", "IndentationError", "ImportError",
+    "ModuleNotFoundError", "AttributeError", "ZeroDivisionError", "FileNotFoundError",
+    "KeyboardInterrupt", "StopIteration", "RuntimeError"
 ]
 
 file_corrente = None
@@ -98,7 +127,7 @@ tema_corrente = "dark"
 
 
 # ==========================================
-# 1B. LOGICA CAMBIO TEMA DINAMICO
+# 1C. LOGICA CAMBIO TEMA DINAMICO
 # ==========================================
 def cambia_tema(event=None):
     global tema_corrente
@@ -119,6 +148,8 @@ def cambia_tema(event=None):
     text_area.configure(bg=t["sfondo_testo"], fg=t["colore_testo"], insertbackground=t["colore_testo"])
     
     text_area.tag_config("keyword", foreground=t["colore_keyword"])
+    text_area.tag_config("builtin", foreground=t["colore_builtin"])
+    text_area.tag_config("exception", foreground=t["colore_eccezione"])
     text_area.tag_config("string", foreground=t["colore_stringa"])
     text_area.tag_config("comment", foreground=t["colore_commento"])
     text_area.tag_config("number", foreground=t["colore_numero"])
@@ -131,7 +162,7 @@ def cambia_tema(event=None):
 
 
 # ==========================================
-# 1C. AGGIORNAMENTO E SINCRONIZZAZIONE NUMERI DI RIGA
+# 1D. SINCRONIZZAZIONE SCORRIMENTO E RIGHE
 # ==========================================
 def aggiorna_numeri_linea(event=None):
     conteggio_righe = text_area.index('end-1c').split('.')[0]
@@ -141,17 +172,13 @@ def aggiorna_numeri_linea(event=None):
     line_box.delete("1.0", tk.END)
     line_box.insert("1.0", stringa_linee)
     line_box.configure(state="disabled")
-    
-    # Mantiene allineata la vista all'aggiornamento
     sincronizza_viste()
 
 def sincronizza_scorrimento(*args):
-    """ Muove contemporaneamente la text_area e la barra dei numeri """
     line_box.yview_moveto(args[0])
     text_area.yview_moveto(args[0])
 
 def sincronizza_viste(event=None):
-    """ Allinea la posizione verticale dei numeri a quella dell'editor principale """
     line_box.yview_moveto(text_area.yview()[0])
 
 
@@ -175,7 +202,7 @@ def gestisci_invio(event):
 
 
 # ==========================================
-# 3. MOTORE DEL TERMINALE INTERATTIVO
+# 3. MOTORE DEL TERMINALE INTERATTIVO CORRETTO
 # ==========================================
 def leggi_output_processo(processo, coda):
     while True:
@@ -199,10 +226,11 @@ def controlla_coda_output():
 def intercetta_invio_cmd(event):
     global processo_attivo
     
+    # Se lo script Python è attivo e sta girando, manda l'input a lui
     if processo_attivo and processo_attivo.poll() is None:
         try:
             testo_digitato = cmd_area.get("input_start", "end-1c")
-            testo_digitato = testo_digitato.replace("\n", "")
+            testo_digitato = testo_digitato.rstrip("\n")
         except tk.TclError:
             riga_corrente_idx = cmd_area.index("insert").split(".")[0]
             testo_digitato = cmd_area.get(f"{riga_corrente_idx}.0", "insert").strip()
@@ -216,9 +244,13 @@ def intercetta_invio_cmd(event):
         cmd_area.see(tk.END)
         return "break"
         
+    # Se lo script NON è attivo, si comporta come una shell normale
     else:
-        riga_corrente_idx = cmd_area.index("insert").split(".")[0]
-        testo_riga = cmd_area.get(f"{riga_corrente_idx}.0", "insert").strip()
+        try:
+            testo_riga = cmd_area.get("input_start", "end-1c").strip()
+        except tk.TclError:
+            riga_corrente_idx = cmd_area.index("insert").split(".")[0]
+            testo_riga = cmd_area.get(f"{riga_corrente_idx}.0", "insert").strip()
         
         if testo_riga.startswith("PS >"):
             comando = testo_riga[4:].strip()
@@ -230,6 +262,7 @@ def intercetta_invio_cmd(event):
         if comando.lower() in ["clear", "cls"]:
             cmd_area.delete("1.0", tk.END)
             cmd_area.insert("1.0", "PS > ")
+            cmd_area.mark_set("input_start", "end-1c")
             return "break"
             
         if comando:
@@ -287,16 +320,19 @@ def esegui_codice():
 
 
 # ==========================================
-# 4. SINTASSI AVANZATA
+# 4. MOTORE SINTASSI ESTESO
 # ==========================================
 def esegui_evidenziazione():
-    for tag in ["keyword", "string", "comment", "number", "function"]:
+    for tag in ["keyword", "builtin", "exception", "string", "comment", "number", "function"]:
         text_area.tag_remove(tag, "1.0", tk.END)
     testo = text_area.get("1.0", tk.END)
+    
     regole = [
         ("comment", r"#.*"),                                 
         ("string", r"(\".*?\")|(\'.*?\')"),                  
         ("keyword", r"\b(" + "|".join(KEYWORDS_PYTHON) + r")\b"), 
+        ("builtin", r"\b(" + "|".join(BUILTINS_PYTHON) + r")\b"), 
+        ("exception", r"\b(" + "|".join(EXCEPTIONS_PYTHON) + r")\b"), 
         ("number", r"\b\d+\b"),                              
         ("function", r"(?<=def\s)\w+"),                      
     ]
@@ -420,7 +456,6 @@ btn_run.pack(side="left", padx=5)
 editor_container = tk.Frame(root, bg=TEMI["dark"]["sfondo_finestra"])
 editor_container.pack(expand=True, fill="both", padx=10, pady=5)
 
-# Barra di scorrimento globale per agganciare sia i numeri che il testo
 scroll_y = tk.Scrollbar(editor_container, command=sincronizza_scorrimento)
 scroll_y.pack(side="right", fill="y")
 
@@ -436,7 +471,6 @@ line_box = tk.Text(
 )
 line_box.pack(side="left", fill="y")
 
-# Leggiamo lo scorrimento verticale agganciandolo alla scrollbar e alla funzione di sync
 text_area = tk.Text(
     editor_container, 
     bg=TEMI["dark"]["sfondo_testo"], 
@@ -449,11 +483,13 @@ text_area = tk.Text(
 )
 text_area.pack(side="right", expand=True, fill="both")
 
-# Disabilitiamo lo scorrimento indipendente della rotella sulla barra dei numeri per bloccare sfasamenti
 line_box.bind("<MouseWheel>", lambda e: "break")
 
+# Configurazione Iniziale dei Tag sui colori
 t_init = TEMI["dark"]
 text_area.tag_config("keyword", foreground=t_init["colore_keyword"])
+text_area.tag_config("builtin", foreground=t_init["colore_builtin"])
+text_area.tag_config("exception", foreground=t_init["colore_eccezione"])
 text_area.tag_config("string", foreground=t_init["colore_stringa"])
 text_area.tag_config("comment", foreground=t_init["colore_commento"])
 text_area.tag_config("number", foreground=t_init["colore_numero"])
@@ -470,7 +506,6 @@ text_area.bind("<KeyRelease>", evidenzia_sintassi)
 text_area.bind("<Return>", gestisci_invio)
 cmd_area.bind("<Return>", intercetta_invio_cmd)
 
-# Eventi di sincronizzazione immediata per movimenti di frecce, click e selezioni
 text_area.bind("<Key>", lambda e: root.after_idle(sincronizza_viste))
 text_area.bind("<Button-1>", lambda e: root.after_idle(sincronizza_viste))
 text_area.bind("<Configure>", aggiorna_numeri_linea)
