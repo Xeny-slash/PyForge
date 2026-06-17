@@ -2,6 +2,7 @@
 
 **PyForge** is a lightweight and responsive IDE/Code Editor designed specifically for rapid Python development. It offers a minimal yet powerful environment featuring an integrated interactive terminal, real-time syntax highlighting, and seamless file management.
 ATTENTION: PyForg is only for windows x64
+TO INSTALL ETERNEL LIBRERIES: use the command "python -m pip install requests" since the recommended Python version is 3.31 or lower; so if you don't use this command, the external libraries will be installed with the latest version.
 ---
 
 ## ✨ Key Features
