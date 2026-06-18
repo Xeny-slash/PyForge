@@ -9,7 +9,7 @@ import queue
 import multiprocessing
 
 # ==========================================
-# 1. IMPOSTAZIONE DEI TEMI COMPLETI
+# 1. IMPOSTAZIONE DEI TEMI COMPLETI (v1.5.2)
 # ==========================================
 TEMI = {
     "dark": {
@@ -21,8 +21,8 @@ TEMI = {
         "colore_eccezione": "#f44747",  
         "colore_stringa": "#ce9178",    
         "colore_commento": "#6a9955",   
-        "colore_numero": "#b5cea8",     
-        "colore_funzione": "#dcdcaa",   
+        "colore_number": "#b5cea8",     
+        "colore_function": "#dcdcaa",   
         "sfondo_pulsanti": "#333333",
         "sfondo_cmd": "#0c0c0c",
         "testo_cmd": "#00ff00",
@@ -40,8 +40,8 @@ TEMI = {
         "colore_eccezione": "#cc0000",  
         "colore_stringa": "#a31515",    
         "colore_commento": "#008000",   
-        "colore_numero": "#098658",     
-        "colore_funzione": "#795e26",   
+        "colore_number": "#098658",     
+        "colore_function": "#795e26",   
         "sfondo_pulsanti": "#e1e1e1",
         "sfondo_cmd": "#ffffff",
         "testo_cmd": "#000000",
@@ -59,8 +59,8 @@ TEMI = {
         "colore_eccezione": "#ff5370",  
         "colore_stringa": "#dbc372",    
         "colore_commento": "#5f8a6b",   
-        "colore_numero": "#f78c6c",     
-        "colore_funzione": "#26f6d0",   
+        "colore_number": "#f78c6c",     
+        "colore_function": "#26f6d0",   
         "sfondo_pulsanti": "#193a22",
         "sfondo_cmd": "#07100a",
         "testo_cmd": "#4af626",
@@ -78,8 +78,8 @@ TEMI = {
         "colore_eccezione": "#ff4081",  
         "colore_stringa": "#ff7f50",    
         "colore_commento": "#6c7a89",   
-        "colore_numero": "#ffd700",     
-        "colore_funzione": "#adff2f",   
+        "colore_number": "#ffd700",     
+        "colore_function": "#adff2f",   
         "sfondo_pulsanti": "#1c3166",
         "sfondo_cmd": "#050b1a",
         "testo_cmd": "#00bfff",
@@ -97,8 +97,8 @@ TEMI = {
         "colore_eccezione": "#cc0000",
         "colore_stringa": "#FF8C00",
         "colore_commento": "#2F4F4F",
-        "colore_numero": "#006400",
-        "colore_funzione": "#795e26",
+        "colore_number": "#006400",
+        "colore_function": "#795e26",
         "sfondo_pulsanti": "#B8860B",
         "sfondo_cmd": "#FAFAD2",
         "testo_cmd": "#000000",
@@ -116,8 +116,8 @@ TEMI = {
         "colore_eccezione": "#FF0000",
         "colore_stringa": "#ff9999",
         "colore_commento": "#7a3a3a",
-        "colore_numero": "#ffcc00",
-        "colore_funzione": "#ff6666",
+        "colore_number": "#ffcc00",
+        "colore_function": "#ff6666",
         "sfondo_pulsanti": "#4a0000",
         "sfondo_cmd": "#000000",
         "testo_cmd": "#FF4654",
@@ -135,8 +135,8 @@ TEMI = {
         "colore_eccezione": "#ff4081",
         "colore_stringa": "#bd93f9",
         "colore_commento": "#6c7a89",
-        "colore_numero": "#f1fa8c",
-        "colore_funzione": "#adff2f",
+        "colore_number": "#f1fa8c",
+        "colore_function": "#adff2f",
         "sfondo_pulsanti": "#2d144d",
         "sfondo_cmd": "#050b1a",
         "testo_cmd": "#bd93f9",
@@ -149,7 +149,6 @@ TEMI = {
 
 COLORE_VIOLA_METODI = "#800080"
 
-# Vocabolario Esteso Python
 KEYWORDS_PYTHON = [
     "for", "while", "if", "elif", "else", "break", "continue", "pass", "return", "yield",
     "class", "def", "self", "cls", "lambda", "try", "except", "finally", "raise", "assert",
@@ -194,7 +193,7 @@ def cambia_tema(event=None):
     toolbar.configure(bg=t["sfondo_finestra"])
     lbl_signature.configure(bg=t["sfondo_finestra"], fg=t["testo_linee"])
     editor_container.configure(bg=t["sfondo_finestra"])
-    label_output.configure(bg=t["sfondo_finestra"], fg=t["colore_testo"] if tema_selezionato == "light" else "white")
+    label_output.configure(bg=t["sfondo_finestra"], fg=t["colore_testo"] if tema_selezionato in ["light", "yellow"] else "white")
     
     btn_save.configure(bg=t["sfondo_pulsanti"], fg=t["colore_testo"])
     btn_run.configure(fg="white")
@@ -208,8 +207,8 @@ def cambia_tema(event=None):
     text_area.tag_config("method", foreground=COLORE_VIOLA_METODI) 
     text_area.tag_config("string", foreground=t["colore_stringa"])
     text_area.tag_config("comment", foreground=t["colore_commento"])
-    text_area.tag_config("number", foreground=t["colore_numero"])
-    text_area.tag_config("function", foreground=t["colore_funzione"])
+    text_area.tag_config("number", foreground=t["colore_number"])
+    text_area.tag_config("function", foreground=t["colore_function"])
     
     cmd_area.configure(bg=t["sfondo_cmd"], fg=t["testo_cmd"], insertbackground=t["testo_cmd"])
     
@@ -255,7 +254,7 @@ def gestisci_invio(event):
     return "break"
 
 # ==========================================
-# 3. NUOVO MOTORE DI INPUT/OUTPUT PULITO
+# 3. MOTORE DI INPUT/OUTPUT
 # ==========================================
 def leggi_output_processo(processo, coda):
     while True:
@@ -269,7 +268,6 @@ def controlla_coda_output():
         testo = coda_output.get_nowait()
         cmd_area.configure(state="normal")
         cmd_area.insert(tk.END, testo)
-        # Definisce il punto esatto di inizio del blocco di digitazione utente
         cmd_area.mark_set("input_start", "end-1c")
         cmd_area.mark_gravity("input_start", "left")
         cmd_area.see(tk.END)  
@@ -277,12 +275,9 @@ def controlla_coda_output():
 
 def intercetta_invio_cmd(event):
     global processo_attivo
-    
-    # Prende solo il testo digitato DOPO il marcatore "input_start"
     testo_digitato = cmd_area.get("input_start", "end-1c").strip("\n\r")
     
     if processo_attivo and processo_attivo.poll() is None:
-        # Trasmette l'input puro direttamente al prompt di Python aperto
         processo_attivo.stdin.write(testo_digitato + "\n")
         processo_attivo.stdin.flush()
         
@@ -292,7 +287,6 @@ def intercetta_invio_cmd(event):
         cmd_area.see(tk.END)
         return "break"
     else:
-        # Se il processo è spento, agisce come una normale riga di comando shell
         cmd_area.insert(tk.END, "\n")
         if testo_digitato.startswith("PS >"):
             comando = testo_digitato[4:].strip()
@@ -307,8 +301,12 @@ def intercetta_invio_cmd(event):
             
         if comando:
             def esegui_comando_shell():
+                cmd_effettivo = comando
+                if comando.startswith("python "):
+                    cmd_effettivo = comando.replace("python ", f'"{sys.executable}" ')
+                
                 shell = subprocess.Popen(
-                    comando, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+                    cmd_effettivo, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
                 )
                 out, err = shell.communicate()
                 cmd_area.insert(tk.END, out + err + "PS > ")
@@ -322,15 +320,26 @@ def intercetta_invio_cmd(event):
             
         return "break"
 
+# ==========================================
+# CORREZIONE CRITICA: ESECUZIONE ISOLATA DEL FILE UTENTE
+# ==========================================
 def esegui_codice():
     global file_corrente, processo_attivo
+    
+    # Se il file non è ancora stato salvato su disco, forza il salvataggio
     if not file_corrente:
         messagebox.showinfo("Salvataggio", "Salva il file prima di eseguirlo!")
-        salva_file()
-        if not file_corrente: return
+        salva_con_nome()
+        if not file_corrente: 
+            return
             
-    with open(file_corrente, "w", encoding="utf-8") as file:
-        file.write(text_area.get("1.0", tk.END + "-1c"))
+    # Salva le modifiche correnti inserite dall'utente all'interno del file specifico
+    try:
+        with open(file_corrente, "w", encoding="utf-8") as file:
+            file.write(text_area.get("1.0", tk.END + "-1c"))
+    except Exception as e:
+        messagebox.showerror("Errore di Scrittura", f"Impossibile salvare il file prima del Run:\n{e}")
+        return
         
     cmd_area.configure(state="normal")
     cmd_area.delete("1.0", tk.END)
@@ -338,33 +347,32 @@ def esegui_codice():
     cmd_area.mark_set("input_start", tk.END)
     cmd_area.see(tk.END)
     
-    if hasattr(sys, 'frozen'):
-        python_eseguibile = os.path.join(sys._MEIPASS, "python.exe")
-        if not os.path.exists(python_eseguibile):
-            python_eseguibile = "python"
-    else:
-        python_eseguibile = sys.executable
+    python_eseguibile = sys.executable
 
-    # --- AGGIUNTA: Configurazione per nascondere il CMD su Windows ---
     startupinfo = None
     if sys.platform == "win32":
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        startupinfo.wShowWindow = 0  # 0 corrisponde a SW_HIDE (Nascondi finestra)
+        startupinfo.wShowWindow = 0  
 
-    # Inizializza il sottoprocesso passando startupinfo
-    processo_attivo = subprocess.Popen(
-        [python_eseguibile, "-u", file_corrente],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT, 
-        stdin=subprocess.PIPE,
-        text=True,
-        bufsize=0,
-        startupinfo=startupinfo  # <--- Passiamo i flag di occultamento qui
-    )
-    
-    t = threading.Thread(target=leggi_output_processo, args=(processo_attivo, coda_output), daemon=True)
-    t.start()
+    # CORREZIONE: Passiamo esplicitamente il file_corrente dentro la lista degli argomenti.
+    # In questo modo Python gestisce nativamente i percorsi con spazi senza confondersi.
+    try:
+        processo_attivo = subprocess.Popen(
+            [python_eseguibile, "-u", file_corrente],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, 
+            stdin=subprocess.PIPE,
+            text=True,
+            bufsize=0,
+            startupinfo=startupinfo
+        )
+        
+        t = threading.Thread(target=leggi_output_processo, args=(processo_attivo, coda_output), daemon=True)
+        t.start()
+    except Exception as e:
+        cmd_area.insert(tk.END, f"\nErrore durante l'esecuzione del processo:\n{e}\nPS > ")
+        cmd_area.mark_set("input_start", "end-1c")
 
 # ==========================================
 # 4. MOTORE SINTASSI ESTESO
@@ -416,7 +424,7 @@ def apri_file(percorso_file=None):
                 text_area.insert("1.0", file.read())
             file_corrente = percorso_file
             root.title(f"PyForge - {os.path.basename(percorso_file)}")
-            evidenzia_sintassi()
+            esegui_evidenziazione()
             aggiorna_numeri_linea()
         except Exception as e: 
             messagebox.showerror("Errore", f"{e}")
@@ -456,16 +464,16 @@ root.configure(bg=TEMI["dark"]["sfondo_finestra"])
 
 try:
     import ctypes
-    myappid = 'xeny.pyforge.ide.v1.2'
+    myappid = 'xeny.pyforge.ide.v1.5.2'
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except Exception as e:
-    print(f"Errore taskbar: {e}")
+    pass
 
 try:
     percorso_icona = trova_percorso_risorsa("icona_app.ico")
     root.iconbitmap(percorso_icona)
 except Exception as e:
-    print(f"Errore caricamento icona .ico: {e}")
+    pass
 
 barra_menu = tk.Menu(root)
 root.config(menu=barra_menu)
@@ -484,7 +492,7 @@ toolbar.pack(fill="x", padx=10, pady=5)
 lbl_signature = tk.Label(toolbar, text="by Xeny/", bg=TEMI["dark"]["sfondo_finestra"], fg="#858585", font=("Arial", 10, "italic"))
 lbl_signature.pack(side="left", padx=(5, 10))
 
-combo_temi = ttk.Combobox(toolbar, values=["Dark", "Light", "Green", "Blue"], state="readonly", width=8)
+combo_temi = ttk.Combobox(toolbar, values=["Dark", "Light", "Green", "Blue", "Yellow", "Red", "Purple"], state="readonly", width=8)
 combo_temi.set("Dark")
 combo_temi.pack(side="left", padx=(0, 15))
 combo_temi.bind("<<ComboboxSelected>>", cambia_tema)
@@ -534,8 +542,8 @@ text_area.tag_config("exception", foreground=t_init["colore_eccezione"])
 text_area.tag_config("method", foreground=COLORE_VIOLA_METODI) 
 text_area.tag_config("string", foreground=t_init["colore_stringa"])
 text_area.tag_config("comment", foreground=t_init["colore_commento"])
-text_area.tag_config("number", foreground=t_init["colore_numero"])
-text_area.tag_config("function", foreground=t_init["colore_funzione"])
+text_area.tag_config("number", foreground=t_init["colore_number"])
+text_area.tag_config("function", foreground=t_init["colore_function"])
 
 label_output = tk.Label(root, text="Terminal Integrato:", bg=TEMI["dark"]["sfondo_finestra"], fg="white", anchor="w")
 label_output.pack(fill="x", padx=10, pady=(5, 0))
@@ -544,7 +552,7 @@ cmd_area = tk.Text(root, bg=TEMI["dark"]["sfondo_cmd"], fg=TEMI["dark"]["testo_c
 cmd_area.pack(fill="x", padx=10, pady=(0, 10))
 cmd_area.insert("1.0", "PS > ")
 
-text_area.bind("<KeyRelease>", evidenzia_sintassi)
+text_area.bind("<KeyRelease>", esegui_evidenziazione)
 text_area.bind("<Return>", gestisci_invio)
 cmd_area.bind("<Return>", intercetta_invio_cmd)
 
@@ -558,7 +566,8 @@ root.after(100, controlla_coda_output)
 def controlla_file_argomento():
     if len(sys.argv) > 1:
         percorso = sys.argv[1]
-        if os.path.exists(percorso) and percorso.endswith(('.py', '.txt', '.json', '.ini')):
+        # Impediamo l'apertura automatica del codice sorgente di pyforge stesso come argomento
+        if os.path.exists(percorso) and percorso.endswith('.py') and "progetto.py" not in percorso:
             apri_file(percorso)
 
 root.after(200, controlla_file_argomento)
