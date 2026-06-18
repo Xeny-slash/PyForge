@@ -473,7 +473,7 @@ root.configure(bg=TEMI["dark"]["sfondo_finestra"])
 
 try:
     import ctypes
-    myappid = 'xeny.pyforge.ide.v1.5.3'
+    myappid = 'xeny.pyforge.ide.v1.3'
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except Exception as e:
     pass
