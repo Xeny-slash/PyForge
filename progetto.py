@@ -9,7 +9,7 @@ import queue
 import multiprocessing
 
 # ==========================================
-# 1. IMPOSTAZIONE DEI TEMI COMPLETI (v1.5.2)
+# 1. IMPOSTAZIONE DEI TEMI COMPLETI (v1.5.3)
 # ==========================================
 TEMI = {
     "dark": {
@@ -326,14 +326,15 @@ def intercetta_invio_cmd(event):
 def esegui_codice():
     global file_corrente, processo_attivo
     
-    # Se il file non è ancora stato salvato su disco, forza il salvataggio
-    if not file_corrente:
+    # 1. Forza il salvataggio se il file non esiste ancora
+    nome_script_principale = os.path.basename(sys.argv[0])
+    if not file_corrente or os.path.basename(file_corrente) == nome_script_principale:
         messagebox.showinfo("Salvataggio", "Salva il file prima di eseguirlo!")
         salva_con_nome()
-        if not file_corrente: 
+        if not file_corrente or os.path.basename(file_corrente) == nome_script_principale: 
             return
             
-    # Salva le modifiche correnti inserite dall'utente all'interno del file specifico
+    # 2. Salva le modifiche correnti nel file dell'utente
     try:
         with open(file_corrente, "w", encoding="utf-8") as file:
             file.write(text_area.get("1.0", tk.END + "-1c"))
@@ -347,7 +348,13 @@ def esegui_codice():
     cmd_area.mark_set("input_start", tk.END)
     cmd_area.see(tk.END)
     
-    python_eseguibile = sys.executable
+    # Se siamo all'interno di un ambiente "frizzato" (es. PyInstaller), sys.executable punta all'EXE dell'IDE.
+    # Dobbiamo assicurarci di usare l'interprete Python reale per lo script dell'utente.
+    if hasattr(sys, 'frozen'):
+        # Se è un EXE compilato, cerchiamo un python standard nel sistema, altrimenti usiamo sys.executable
+        python_eseguibile = "python" 
+    else:
+        python_eseguibile = sys.executable
 
     startupinfo = None
     if sys.platform == "win32":
@@ -355,9 +362,10 @@ def esegui_codice():
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
         startupinfo.wShowWindow = 0  
 
-    # CORREZIONE: Passiamo esplicitamente il file_corrente dentro la lista degli argomenti.
-    # In questo modo Python gestisce nativamente i percorsi con spazi senza confondersi.
     try:
+        # Otteniamo la cartella del file per impostare la directory di lavoro (cwd)
+        directory_lavoro = os.path.dirname(os.path.abspath(file_corrente))
+        
         processo_attivo = subprocess.Popen(
             [python_eseguibile, "-u", file_corrente],
             stdout=subprocess.PIPE,
@@ -365,6 +373,7 @@ def esegui_codice():
             stdin=subprocess.PIPE,
             text=True,
             bufsize=0,
+            cwd=directory_lavoro, # <--- IMPORTANTE: Esegue il codice nella sua cartella
             startupinfo=startupinfo
         )
         
@@ -464,7 +473,7 @@ root.configure(bg=TEMI["dark"]["sfondo_finestra"])
 
 try:
     import ctypes
-    myappid = 'xeny.pyforge.ide.v1.5.2'
+    myappid = 'xeny.pyforge.ide.v1.5.3'
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except Exception as e:
     pass
@@ -552,7 +561,7 @@ cmd_area = tk.Text(root, bg=TEMI["dark"]["sfondo_cmd"], fg=TEMI["dark"]["testo_c
 cmd_area.pack(fill="x", padx=10, pady=(0, 10))
 cmd_area.insert("1.0", "PS > ")
 
-text_area.bind("<KeyRelease>", esegui_evidenziazione)
+text_area.bind("<KeyRelease>", evidenzia_sintassi)
 text_area.bind("<Return>", gestisci_invio)
 cmd_area.bind("<Return>", intercetta_invio_cmd)
 
@@ -566,12 +575,15 @@ root.after(100, controlla_coda_output)
 def controlla_file_argomento():
     if len(sys.argv) > 1:
         percorso = sys.argv[1]
-        # Impediamo l'apertura automatica del codice sorgente di pyforge stesso come argomento
-        if os.path.exists(percorso) and percorso.endswith('.py') and "progetto.py" not in percorso:
+        nome_script_principale = os.path.basename(sys.argv[0])
+        # Apri il file passato come argomento solo se esiste e NON è il file dell'IDE stesso
+        if os.path.exists(percorso) and percorso.endswith('.py') and os.path.basename(percorso) != nome_script_principale:
             apri_file(percorso)
 
-root.after(200, controlla_file_argomento)
-
 if __name__ == '__main__':
+    # Questo DEVE essere assolutamente la prima cosa eseguita prima di toccare Tkinter o qualsiasi altra logica
     multiprocessing.freeze_support()
+    
+    # Solo dopo il freeze_support facciamo partire la finestra principale
+    root.after(200, controlla_file_argomento)
     root.mainloop()
